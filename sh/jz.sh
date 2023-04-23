@@ -4,11 +4,16 @@
 # $ sh jz.sh set 2023-01-01
 # $ sh jz.sh add 5d
 # $ sh jz.sh add 5m
+# $ sh jz.sh add -5d
+# $ sh jz.sh add -5m
 # $ sh jz.sh reset
 # $ sh jz.sh clear
 # $ sh jz.sh
 # 引数がsetの場合は、次の日付をjz.txtファイルに保存します。
-# 引数がaddの場合は、d.txtファイルの日付に、引数の日数を加算します。
+# 引数がadd dの場合は、d.txtファイルの日付に、引数の日数を加算します。
+# 引数がadd mの場合は、d.txtファイルの日付に、引数の月数を加算します。
+# 引数がadd -dの場合は、d.txtファイルの日付に、引数の日数を減算します。
+# 引数がadd -mの場合は、d.txtファイルの日付に、引数の月数を減算します。
 # 引数がresetの場合は、d.txtファイルの日付を、現在の日付にします。
 # 引数がclearの場合は、d.txtファイルを削除します。
 # 引数がない場合は、d.txtファイルの日付を表示します。
@@ -27,6 +32,17 @@ if [ $# -eq 2 ]; then
         exit 1
     fi
 fi
+# 引数がadd の場合、数字d、または数値m、または-数字d、または-数値mでない場合は、エラー終了します。
+if [ $# -eq 2 ]; then
+    if [ $1 = "add" ]; then
+        if [[ $2 != *[0-9]d ]] && [[ $2 != *[0-9]m ]] && [[ $2 != -*[0-9]d ]] && [[ $2 != -*[0-9]m ]]; then
+            echo "引数が不正です。"
+            echo "add 5d add 5m add -5d add -5m のいずれかを指定してください。"
+            exit 1
+        fi
+    fi
+fi
+
 # 引数が set add reset clear のいずれでもない場合は、エラー終了します。
 if [ $# -eq 1 ]; then
     if [ $1 != "set" -a $1 != "add" -a $1 != "reset" -a $1 != "clear" ]; then
@@ -51,7 +67,8 @@ fi
 if [ $1 = "set" ]; then
     date -d $2 +"%Y-%m-%d" > d.txt
 fi
-# 引数がaddの場合は、d.txtファイルの日付に、引数の日数を加算します。
+
+# 引数がaddの場合、符号を確認して、日・月の減算加算を実行します。
 if [ $1 = "add" ]; then
     if [ ${2: -1} = "d" ]; then
         # 日付を加算します。
@@ -66,6 +83,7 @@ if [ $1 = "add" ]; then
     echo $d > d.txt
     cat d.txt
 fi
+
 # 引数がresetの場合は、d.txtファイルの日付を、現在の日付にします。
 if [ $1 = "reset" ]; then
     date +"%Y-%m-%d" > d.txt
@@ -111,7 +129,15 @@ $JZ_START \\
 $DATE \\
 $JZ_END" $FILE1
 
+# メッセージ
+# システム日付と、設定後の日付を表示
+echo "システム日付：$(date +"%Y-%m-%d")"  
+echo "時刻ずらし日付：$DATE"
+# 日と月の差分をそれぞれ表示
+echo "日の差分：$(( ($(date -d $DATE +%s) - $(date +%s)) / (60*60*24) ))"
+echo "月の差分：$(( ($(date -d $DATE +%s) - $(date +%s)) / (60*60*24*30) ))"
 
-echo $DATE に設定しました。
+# 終了
+
 
 exit 0
