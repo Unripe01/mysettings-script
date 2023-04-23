@@ -8,7 +8,6 @@
 # $ sh jz.sh add -5m
 # $ sh jz.sh reset
 # $ sh jz.sh clear
-# $ sh jz.sh
 # 引数がsetの場合は、次の日付をjz.txtファイルに保存します。
 # 引数がadd dの場合は、d.txtファイルの日付に、引数の日数を加算します。
 # 引数がadd mの場合は、d.txtファイルの日付に、引数の月数を加算します。
@@ -16,12 +15,15 @@
 # 引数がadd -mの場合は、d.txtファイルの日付に、引数の月数を減算します。
 # 引数がresetの場合は、d.txtファイルの日付を、現在の日付にします。
 # 引数がclearの場合は、d.txtファイルを削除します。
-# 引数がない場合は、d.txtファイルの日付を表示します。
 
 # 処理開始
 ##########################
 # 引数のチェック
 ##########################
+if [ $# -eq 0 ]; then
+    echo "set add reset clear のいずれかを指定してください。"
+    exit 1
+fi
 if [ $# -gt 2 ]; then
     echo "引数が多すぎます。"
     exit 1
@@ -37,7 +39,7 @@ if [ $# -eq 2 ]; then
     if [ $1 = "add" ]; then
         if [[ $2 != *[0-9]d ]] && [[ $2 != *[0-9]m ]] && [[ $2 != -*[0-9]d ]] && [[ $2 != -*[0-9]m ]]; then
             echo "引数が不正です。"
-            echo "add 5d add 5m add -5d add -5m のいずれかを指定してください。"
+            echo "add 5d add 5m add -5d add -5m のように指定してください。"
             exit 1
         fi
     fi
@@ -58,10 +60,6 @@ fi
 # d.txtファイルがない場合は、現在の日付をd.txtファイルに保存します。
 if [ ! -e d.txt ]; then
     date +"%Y-%m-%d" > d.txt
-fi
-# 引数がない場合は、d.txtファイルの日付を表示します。
-if [ $# -eq 0 ]; then
-    cat d.txt
 fi
 # 引数がsetの場合は、次の日付をjz.txtファイルに保存します。
 if [ $1 = "set" ]; then
@@ -124,20 +122,26 @@ M=${DATE:5:2}
 D=${DATE:8:2}
 
 # jzコードを追加
-sed -i -e "/function hello_world() {/a\\
+# sed -i -e "/function hello_world() {/a\\
+# $JZ_START \\
+# $DATE \\
+# $JZ_END" $FILE1
+
+# jzコードを行頭に追加
+sed -i "1i\\
 $JZ_START \\
 $DATE \\
 $JZ_END" $FILE1
 
+
 # メッセージ
 # システム日付と、設定後の日付を表示
 echo "システム日付：$(date +"%Y-%m-%d")"  
-echo "時刻ずらし日付：$DATE"
+echo "ずらし後日付：$DATE"
 # 日と月の差分をそれぞれ表示
 echo "日の差分：$(( ($(date -d $DATE +%s) - $(date +%s)) / (60*60*24) ))"
 echo "月の差分：$(( ($(date -d $DATE +%s) - $(date +%s)) / (60*60*24*30) ))"
 
 # 終了
-
 
 exit 0
