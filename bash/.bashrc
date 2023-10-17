@@ -16,6 +16,14 @@ function stsx() {
     echo 'GOD!!'
 }
 
+function awslogin() {
+    cd /c/repos/mfa-docker-aws-bash
+    command=`dc run client 2>/dev/null | xargs -IXXX aws sts get-session-token --serial-number arn:aws:iam::ZZZZZZZZZZZZZ:mfa/NAMENAME --profile dev --token-code XXX | jq -r '"export AWS_ACCESS_KEY_ID=" + .Credentials.AccessKeyId + " && export AWS_SECRET_ACCESS_KEY=" + .Credentials.SecretAccessKey + " && export AWS_SESSION_TOKEN=" + .Credentials.SessionToken'`
+    eval $command
+    echo $command
+    cd -
+}
+
 # git
 alias gitf='git fetch --prune'
 alias gitbalus="git branch |egrep -v '\*master|develop|main|gaya20'|xargs git branch -d"
@@ -39,3 +47,8 @@ eval "$(fnm env --use-on-cd --shell=bash)"
 
 # Convert and set Windows environment variables to LINUX-style PATH.
 export PATH=$PATH:`cygpath -u $PATH`
+
+
+# 文字化け対応
+export LANG=ja_JP.UTF-8
+export LC_CTYPE=ja_JP.UTF-8
